@@ -95,7 +95,7 @@
         </div>
 
         <div v-else>
-          <div id="qr-reader" class="rounded-lg overflow-hidden mb-4"></div>
+          <div id="qr-reader" class="rounded-lg overflow-hidden mb-4" style="min-height: 300px;"></div>
           <button @click="stopScanning" class="w-full btn-danger">
             <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -192,22 +192,41 @@ const startScanning = async () => {
     errorMessage.value = ''
     successMessage.value = ''
     
+    // Set scanning state first to show the qr-reader element
+    isScanning.value = true
+    
+    // Wait for DOM to update
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
+    // Verify element exists
+    const element = document.getElementById('qr-reader')
+    if (!element) {
+      isScanning.value = false
+      throw new Error('Element QR reader tidak ditemukan. Silakan refresh halaman.')
+    }
+    
+    console.log('QR reader element found:', element)
+    
     // Check if browser supports camera
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      isScanning.value = false
       throw new Error('Browser Anda tidak mendukung akses kamera. Pastikan Anda menggunakan HTTPS atau localhost.')
     }
     
     // Request camera permission first
     try {
+      console.log('Requesting camera permission...')
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: 'environment' // Prefer back camera on mobile
         } 
       })
+      console.log('Camera permission granted')
       // Stop the stream immediately, we just needed to check permission
       stream.getTracks().forEach(track => track.stop())
     } catch (permErr) {
       console.error('Permission error:', permErr)
+      isScanning.value = false
       if (permErr.name === 'NotAllowedError' || permErr.name === 'PermissionDeniedError') {
         throw new Error('Akses kamera ditolak. Silakan izinkan akses kamera di pengaturan browser Anda.')
       } else if (permErr.name === 'NotFoundError' || permErr.name === 'DevicesNotFoundError') {
@@ -220,12 +239,15 @@ const startScanning = async () => {
     }
     
     // Initialize Html5Qrcode
+    console.log('Initializing Html5Qrcode...')
     html5QrCode.value = new Html5Qrcode("qr-reader")
     
     // Get available cameras
+    console.log('Getting available cameras...')
     const devices = await Html5Qrcode.getCameras()
     
     if (!devices || devices.length === 0) {
+      isScanning.value = false
       throw new Error('Tidak ada kamera yang terdeteksi')
     }
     
@@ -249,6 +271,7 @@ const startScanning = async () => {
     }
     
     // Start scanning with the selected camera
+    console.log('Starting camera with ID:', cameraId)
     await html5QrCode.value.start(
       cameraId,
       {
@@ -257,6 +280,7 @@ const startScanning = async () => {
           // Make QR box responsive
           const minEdge = Math.min(viewfinderWidth, viewfinderHeight)
           const qrboxSize = Math.floor(minEdge * 0.7)
+          console.log('QR box size:', qrboxSize)
           return {
             width: qrboxSize,
             height: qrboxSize
@@ -268,10 +292,11 @@ const startScanning = async () => {
       onScanError
     )
     
-    isScanning.value = true
+    console.log('Camera started successfully!')
     errorMessage.value = ''
   } catch (err) {
     console.error('Camera error:', err)
+    isScanning.value = false
     errorMessage.value = err.message || 'Gagal mengakses kamera. Pastikan Anda telah mengizinkan akses kamera.'
     
     // Clean up if initialization failed
