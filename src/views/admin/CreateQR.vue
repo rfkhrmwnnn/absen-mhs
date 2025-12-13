@@ -97,6 +97,19 @@
               <p><strong>Waktu:</strong> {{ currentQR.startTime }} - {{ currentQR.endTime }}</p>
               <p v-if="currentQR.description"><strong>Keterangan:</strong> {{ currentQR.description }}</p>
             </div>
+            
+            <!-- Manual Code Display -->
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Kode Manual (untuk input manual):</p>
+              <div class="bg-white dark:bg-gray-900 rounded-lg p-4 text-center">
+                <p class="text-3xl font-bold text-primary-600 dark:text-primary-400 tracking-widest font-mono">
+                  {{ currentQR.manualCode }}
+                </p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Mahasiswa bisa input kode ini jika scan QR tidak berfungsi
+                </p>
+              </div>
+            </div>
           </div>
 
           <div class="flex space-x-4">
