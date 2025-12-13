@@ -80,6 +80,22 @@
 
             <div>
               <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Bio (Opsional)
+              </label>
+              <textarea
+                v-model="profileForm.bio"
+                rows="3"
+                maxlength="200"
+                placeholder="Ceritakan sedikit tentang diri Anda... (max 200 karakter)"
+                class="input-field resize-none"
+              ></textarea>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {{ profileForm.bio?.length || 0 }}/200 karakter
+              </p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 NIM (Tidak dapat diubah)
               </label>
               <input
@@ -176,7 +192,8 @@ const authStore = useAuthStore()
 
 const profileForm = ref({
   name: '',
-  email: ''
+  email: '',
+  bio: ''
 })
 
 const passwordForm = ref({
@@ -193,6 +210,7 @@ const passwordError = ref('')
 onMounted(() => {
   profileForm.value.name = authStore.user?.name || ''
   profileForm.value.email = authStore.user?.email || ''
+  profileForm.value.bio = authStore.user?.bio || ''
 })
 
 const updateProfile = () => {
@@ -202,7 +220,8 @@ const updateProfile = () => {
   try {
     authStore.updateProfile({
       name: profileForm.value.name,
-      email: profileForm.value.email
+      email: profileForm.value.email,
+      bio: profileForm.value.bio
     })
 
     profileSuccess.value = 'Profile berhasil diperbarui!'
