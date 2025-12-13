@@ -110,15 +110,54 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function updateProfile(updates) {
-    if (!user.value) return
+    if (!user.value) {
+      console.error('No user logged in')
+      throw new Error('Tidak ada user yang login')
+    }
+
+    console.log('=== UPDATE PROFILE ===')
+    console.log('Current user:', user.value)
+    console.log('Updates:', updates)
 
     const userIndex = users.value.findIndex(u => u.id === user.value.id)
-    if (userIndex !== -1) {
-      users.value[userIndex] = { ...users.value[userIndex], ...updates }
-      user.value = users.value[userIndex]
-      
+    
+    if (userIndex === -1) {
+      console.error('User not found in users array')
+      throw new Error('User tidak ditemukan')
+    }
+
+    // Merge existing data with updates (preserves all existing fields)
+    const updatedUser = { 
+      ...users.value[userIndex], // Keep all existing data
+      ...updates // Apply updates
+    }
+    
+    console.log('Updated user:', updatedUser)
+    
+    // Update in array
+    users.value[userIndex] = updatedUser
+    
+    // Update current user
+    user.value = updatedUser
+    
+    // Save to localStorage with error handling
+    try {
       localStorage.setItem('users', JSON.stringify(users.value))
       localStorage.setItem('currentUser', JSON.stringify(user.value))
+      
+      // Verify save
+      const savedUsers = localStorage.getItem('users')
+      const savedCurrentUser = localStorage.getItem('currentUser')
+      
+      if (!savedUsers || !savedCurrentUser) {
+        throw new Error('Failed to save to localStorage')
+      }
+      
+      console.log('✅ Profile updated successfully')
+      console.log('=== END UPDATE PROFILE ===')
+    } catch (err) {
+      console.error('localStorage error:', err)
+      throw new Error('Gagal menyimpan perubahan profile')
     }
   }
 
