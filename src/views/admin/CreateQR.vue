@@ -185,6 +185,22 @@ const qrCanvas = ref(null)
 const activeQRCodes = computed(() => attendanceStore.getActiveQRCodes())
 
 const generateQR = async () => {
+  // Validate time range
+  if (!formData.value.startTime || !formData.value.endTime) {
+    alert('Waktu mulai dan selesai harus diisi!')
+    return
+  }
+  
+  const [startHour, startMinute] = formData.value.startTime.split(':').map(Number)
+  const [endHour, endMinute] = formData.value.endTime.split(':').map(Number)
+  const startMinutes = startHour * 60 + startMinute
+  const endMinutes = endHour * 60 + endMinute
+  
+  if (endMinutes <= startMinutes) {
+    alert('Waktu selesai harus lebih besar dari waktu mulai!\n\nContoh yang benar:\nMulai: 08:00\nSelesai: 10:00')
+    return
+  }
+  
   const qrData = attendanceStore.createQRCode(formData.value)
   currentQR.value = qrData
   
