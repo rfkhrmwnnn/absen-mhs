@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Kamera - Absensi Mahasiswa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .status.info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #90caf9;
+        }
+        
+        .status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+            border: 1px solid #81c784;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef5350;
+        }
+        
+        .status.warning {
+            background: #fff3e0;
+            color: #f57c00;
+            border: 1px solid #ffb74d;
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #video {
+            width: 100%;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+            background: #000;
+        }
+        
+        .log {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        
+        .log-item {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid #ddd;
+            padding-left: 10px;
+        }
+        
+        .log-item.success {
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+        
+        .log-item.error {
+            border-color: #f44336;
+            color: #c62828;
+        }
+        
+        .log-item.info {
+            border-color: #2196f3;
+            color: #1565c0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎥 Test Kamera</h1>
+        <p class="subtitle">Diagnostic tool untuk mengecek akses kamera</p>
+        
+        <div id="status" class="status info">
+            Klik tombol di bawah untuk mulai test kamera
+        </div>
+        
+        <button id="testBtn" onclick="testCamera()">🚀 Mulai Test Kamera</button>
+        <button id="stopBtn" onclick="stopCamera()" style="display: none; background: #f44336;">⏹️ Stop Kamera</button>
+        
+        <video id="video" autoplay playsinline></video>
+        
+        <div class="log" id="log">
+            <div class="log-item info">📋 Log akan muncul di sini...</div>
+        </div>
+    </div>
+
+    <script>
+        let stream = null;
+        const video = document.getElementById('video');
+        const status = document.getElementById('status');
+        const testBtn = document.getElementById('testBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const logDiv = document.getElementById('log');
+
+        function addLog(message, type = 'info') {
+            const logItem = document.createElement('div');
+            logItem.className = `log-item ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            logItem.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(logItem);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateStatus(message, type = 'info') {
+            status.className = `status ${type}`;
+            status.textContent = message;
+        }
+
+        async function testCamera() {
+            addLog('🔍 Memulai test kamera...', 'info');
+            testBtn.disabled = true;
+
+            try {
+                // Test 1: Check if getUserMedia is available
+                addLog('Test 1: Cek dukungan browser...', 'info');
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Browser tidak mendukung akses kamera. Pastikan menggunakan HTTPS!');
+                }
+                addLog('✅ Browser mendukung akses kamera', 'success');
+
+                // Test 2: Check protocol
+                addLog('Test 2: Cek protokol...', 'info');
+                const protocol = window.location.protocol;
+                const hostname = window.location.hostname;
+                addLog(`Protokol: ${protocol}, Hostname: ${hostname}`, 'info');
+                
+                if (protocol !== 'https:' && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+                    addLog('⚠️ WARNING: Tidak menggunakan HTTPS atau localhost!', 'error');
+                    updateStatus('⚠️ Harus menggunakan HTTPS atau localhost untuk akses kamera!', 'warning');
+                } else {
+                    addLog('✅ Protokol aman', 'success');
+                }
+
+                // Test 3: Get available devices
+                addLog('Test 3: Mencari kamera yang tersedia...', 'info');
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
+                if (videoDevices.length === 0) {
+                    throw new Error('Tidak ada kamera yang ditemukan!');
+                }
+                
+                addLog(`✅ Ditemukan ${videoDevices.length} kamera:`, 'success');
+                videoDevices.forEach((device, index) => {
+                    addLog(`  ${index + 1}. ${device.label || 'Kamera ' + (index + 1)}`, 'info');
+                });
+
+                // Test 4: Request camera permission
+                addLog('Test 4: Meminta izin akses kamera...', 'info');
+                updateStatus('📸 Meminta izin akses kamera...', 'info');
+                
+                const constraints = {
+                    video: {
+                        facingMode: 'environment', // Prefer back camera
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                addLog('✅ Izin kamera diberikan!', 'success');
+
+                // Test 5: Display video
+                addLog('Test 5: Menampilkan video...', 'info');
+                video.srcObject = stream;
+                video.style.display = 'block';
+                
+                video.onloadedmetadata = () => {
+                    addLog('✅ Video berhasil ditampilkan!', 'success');
+                    const track = stream.getVideoTracks()[0];
+                    const settings = track.getSettings();
+                    addLog(`Resolusi: ${settings.width}x${settings.height}`, 'info');
+                    addLog(`Frame rate: ${settings.frameRate} fps`, 'info');
+                    addLog(`Facing mode: ${settings.facingMode || 'unknown'}`, 'info');
+                    
+                    updateStatus('✅ Kamera berhasil diakses dan berfungsi dengan baik!', 'success');
+                    testBtn.style.display = 'none';
+                    stopBtn.style.display = 'block';
+                };
+
+            } catch (error) {
+                addLog(`❌ ERROR: ${error.message}`, 'error');
+                console.error('Camera error:', error);
+                
+                let errorMsg = 'Gagal mengakses kamera: ';
+                
+                if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                    errorMsg += 'Izin ditolak. Silakan izinkan akses kamera di pengaturan browser.';
+                } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                    errorMsg += 'Kamera tidak ditemukan.';
+                } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+                    errorMsg += 'Kamera sedang digunakan aplikasi lain.';
+                } else if (error.name === 'OverconstrainedError') {
+                    errorMsg += 'Konfigurasi kamera tidak didukung.';
+                } else if (error.name === 'SecurityError') {
+                    errorMsg += 'Akses tidak aman. Gunakan HTTPS!';
+                } else {
+                    errorMsg += error.message;
+                }
+                
+                updateStatus(errorMsg, 'error');
+                testBtn.disabled = false;
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                addLog('⏹️ Menghentikan kamera...', 'info');
+                stream.getTracks().forEach(track => {
+                    track.stop();
+                    addLog(`Stopped track: ${track.kind}`, 'info');
+                });
+                stream = null;
+                video.srcObject = null;
+                video.style.display = 'none';
+                addLog('✅ Kamera dihentikan', 'success');
+                updateStatus('Kamera telah dihentikan. Klik tombol untuk test lagi.', 'info');
+                testBtn.style.display = 'block';
+                testBtn.disabled = false;
+                stopBtn.style.display = 'none';
+            }
+        }
+
+        // Auto-run on load
+        window.addEventListener('load', () => {
+            addLog('📱 Halaman dimuat', 'info');
+            addLog(`User Agent: ${navigator.userAgent}`, 'info');
+            addLog(`Platform: ${navigator.platform}`, 'info');
+        });
+    </script>
+</body>
+</html>
