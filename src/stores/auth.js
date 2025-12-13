@@ -39,31 +39,53 @@ export const useAuthStore = defineStore('auth', () => {
   const isStudent = computed(() => user.value?.role === 'student')
 
   function register(userData) {
-    // Validate NIM (must be 8 digits)
-    if (!/^\d{8}$/.test(userData.nim)) {
-      throw new Error('NIM harus 8 digit angka')
+    try {
+      // Validate NIM (must be 8 digits)
+      if (!/^\d{8}$/.test(userData.nim)) {
+        throw new Error('NIM harus 8 digit angka')
+      }
+
+      // Check if NIM or email already exists
+      const existingUser = users.value.find(
+        u => u.nim === userData.nim || u.email === userData.email
+      )
+
+      if (existingUser) {
+        throw new Error('NIM atau Email sudah terdaftar')
+      }
+
+      const newUser = {
+        id: Date.now(),
+        ...userData,
+        role: 'student',
+        createdAt: new Date().toISOString()
+      }
+
+      users.value.push(newUser)
+      
+      // Save to localStorage with error handling
+      try {
+        localStorage.setItem('users', JSON.stringify(users.value))
+        
+        // Verify the data was saved
+        const saved = localStorage.getItem('users')
+        if (!saved) {
+          throw new Error('Data tidak tersimpan ke localStorage')
+        }
+        
+        console.log('User registered successfully:', newUser)
+      } catch (storageErr) {
+        console.error('localStorage error:', storageErr)
+        // Remove the user from array if save failed
+        users.value = users.value.filter(u => u.id !== newUser.id)
+        throw new Error('Gagal menyimpan data registrasi. Pastikan browser Anda mengizinkan penyimpanan data.')
+      }
+      
+      return newUser
+    } catch (err) {
+      console.error('Error during registration:', err)
+      throw err
     }
-
-    // Check if NIM or email already exists
-    const existingUser = users.value.find(
-      u => u.nim === userData.nim || u.email === userData.email
-    )
-
-    if (existingUser) {
-      throw new Error('NIM atau Email sudah terdaftar')
-    }
-
-    const newUser = {
-      id: Date.now(),
-      ...userData,
-      role: 'student',
-      createdAt: new Date().toISOString()
-    }
-
-    users.value.push(newUser)
-    localStorage.setItem('users', JSON.stringify(users.value))
-    
-    return newUser
   }
 
   function login(identifier, password) {
