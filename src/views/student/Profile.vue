@@ -12,8 +12,14 @@
           <span class="text-white font-bold text-4xl">{{ authStore.user?.name?.charAt(0) }}</span>
         </div>
         <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">{{ authStore.user?.name }}</h2>
-        <p class="text-gray-600 dark:text-gray-400 font-mono mb-4">{{ authStore.user?.nim }}</p>
-        <p class="text-sm text-gray-500 dark:text-gray-500">{{ authStore.user?.email }}</p>
+        <p class="text-gray-600 dark:text-gray-400 font-mono mb-2">{{ authStore.user?.nim }}</p>
+        <p class="text-sm text-gray-500 dark:text-gray-500 mb-4">{{ authStore.user?.email }}</p>
+        
+        <!-- Bio -->
+        <div v-if="authStore.user?.bio" class="bg-gradient-to-r from-primary-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-lg p-4 mb-4">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-1 font-semibold">Bio</p>
+          <p class="text-sm text-gray-700 dark:text-gray-300 italic">{{ authStore.user?.bio }}</p>
+        </div>
         
         <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
           <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Bergabung sejak</p>
