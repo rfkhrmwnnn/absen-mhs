@@ -46,21 +46,40 @@ export const useAttendanceStore = defineStore('attendance', () => {
   function recordAttendance(studentId, qrCodeId) {
     const qr = qrCodes.value.find(q => q.id === qrCodeId)
     
+    console.log('=== ATTENDANCE VALIDATION ===')
+    console.log('QR Code:', qr)
+    console.log('Student ID:', studentId)
+    
     if (!qr || !qr.isActive) {
+      console.error('QR Code not found or inactive')
       throw new Error('QR Code tidak valid atau sudah tidak aktif')
     }
 
     // Validate date and time
     const now = new Date()
-    const qrDate = new Date(qr.date)
+    console.log('Current time:', now.toISOString())
+    console.log('Current local time:', now.toLocaleString('id-ID'))
     
-    // Check if the date matches (ignore time for date comparison)
-    const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const qrDateOnly = new Date(qrDate.getFullYear(), qrDate.getMonth(), qrDate.getDate())
+    // Parse QR date (format: YYYY-MM-DD)
+    const [qrYear, qrMonth, qrDay] = qr.date.split('-').map(Number)
+    const qrDateOnly = new Date(qrYear, qrMonth - 1, qrDay) // month is 0-indexed
     
-    if (nowDate.getTime() !== qrDateOnly.getTime()) {
-      throw new Error('QR Code hanya berlaku pada tanggal ' + qrDate.toLocaleDateString('id-ID'))
+    // Get today's date (without time)
+    const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    
+    console.log('QR Date (input):', qr.date)
+    console.log('QR Date (parsed):', qrDateOnly.toLocaleDateString('id-ID'))
+    console.log('Today Date:', nowDateOnly.toLocaleDateString('id-ID'))
+    
+    // Check if the date matches
+    if (nowDateOnly.getTime() !== qrDateOnly.getTime()) {
+      console.error('Date mismatch!')
+      console.error('Expected:', qrDateOnly.toLocaleDateString('id-ID'))
+      console.error('Got:', nowDateOnly.toLocaleDateString('id-ID'))
+      throw new Error('QR Code hanya berlaku pada tanggal ' + qrDateOnly.toLocaleDateString('id-ID'))
     }
+    
+    console.log('✅ Date validation passed')
     
     // Check if current time is within the valid time range
     const currentTime = now.getHours() * 60 + now.getMinutes()
@@ -69,9 +88,17 @@ export const useAttendanceStore = defineStore('attendance', () => {
     const startTimeMinutes = startHour * 60 + startMinute
     const endTimeMinutes = endHour * 60 + endMinute
     
+    console.log('Current time (minutes):', currentTime, `(${now.getHours()}:${now.getMinutes()})`)
+    console.log('Start time (minutes):', startTimeMinutes, `(${qr.startTime})`)
+    console.log('End time (minutes):', endTimeMinutes, `(${qr.endTime})`)
+    
     if (currentTime < startTimeMinutes || currentTime > endTimeMinutes) {
+      console.error('Time out of range!')
+      console.error('Current:', currentTime, 'Range:', startTimeMinutes, '-', endTimeMinutes)
       throw new Error(`QR Code hanya berlaku pada pukul ${qr.startTime} - ${qr.endTime}`)
     }
+    
+    console.log('✅ Time validation passed')
 
     // Check if already attended
     const existingAttendance = attendances.value.find(
@@ -79,8 +106,11 @@ export const useAttendanceStore = defineStore('attendance', () => {
     )
 
     if (existingAttendance) {
+      console.error('Already attended!')
       throw new Error('Anda sudah melakukan absensi untuk sesi ini')
     }
+    
+    console.log('✅ Duplicate check passed')
 
     const attendance = {
       id: Date.now(),
@@ -94,6 +124,9 @@ export const useAttendanceStore = defineStore('attendance', () => {
 
     attendances.value.push(attendance)
     localStorage.setItem('attendances', JSON.stringify(attendances.value))
+    
+    console.log('✅ Attendance recorded:', attendance)
+    console.log('=== END VALIDATION ===')
     
     return attendance
   }
