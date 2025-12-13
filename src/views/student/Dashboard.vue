@@ -1,22 +1,46 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <!-- Mobile Overlay -->
+    <div 
+      v-if="mobileMenuOpen" 
+      @click="mobileMenuOpen = false"
+      class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+    ></div>
+
     <!-- Sidebar -->
-    <aside class="fixed left-0 top-0 h-screen w-64 glass border-r border-gray-200 dark:border-gray-700 z-30">
+    <aside 
+      :class="[
+        'fixed left-0 top-0 h-screen w-64 glass border-r border-gray-200 dark:border-gray-700 z-50 transition-transform duration-300',
+        mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      ]"
+    >
       <div class="p-6">
-        <div class="flex items-center space-x-2 mb-8">
-          <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span class="text-white font-bold text-xl">M</span>
+        <div class="flex items-center justify-between mb-8">
+          <div class="flex items-center space-x-2">
+            <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <span class="text-white font-bold text-xl">M</span>
+            </div>
+            <div>
+              <h1 class="font-bold text-lg gradient-text">Mahasiswa</h1>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Dashboard</p>
+            </div>
           </div>
-          <div>
-            <h1 class="font-bold text-lg gradient-text">Mahasiswa</h1>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Dashboard</p>
-          </div>
+          <!-- Close button for mobile -->
+          <button 
+            @click="mobileMenuOpen = false"
+            class="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         <!-- Navigation -->
         <nav class="space-y-2">
           <router-link
             to="/student/scan"
+            @click="mobileMenuOpen = false"
             class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300"
             :class="$route.path === '/student/scan' ? 'bg-primary-500 text-white shadow-lg' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'"
           >
@@ -28,6 +52,7 @@
 
           <router-link
             to="/student/profile"
+            @click="mobileMenuOpen = false"
             class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300"
             :class="$route.path === '/student/profile' ? 'bg-primary-500 text-white shadow-lg' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'"
           >
@@ -39,6 +64,7 @@
 
           <router-link
             to="/student/prayer-times"
+            @click="mobileMenuOpen = false"
             class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300"
             :class="$route.path === '/student/prayer-times' ? 'bg-primary-500 text-white shadow-lg' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'"
           >
@@ -50,6 +76,7 @@
 
           <router-link
             to="/student/leave-request"
+            @click="mobileMenuOpen = false"
             class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300"
             :class="$route.path === '/student/leave-request' ? 'bg-primary-500 text-white shadow-lg' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'"
           >
@@ -67,9 +94,9 @@
           <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center">
             <span class="text-white font-bold">{{ authStore.user?.name?.charAt(0) }}</span>
           </div>
-          <div class="flex-1">
-            <p class="font-semibold text-gray-800 dark:text-gray-200 text-sm">{{ authStore.user?.name }}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">{{ authStore.user?.nim }}</p>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 dark:text-gray-200 text-sm truncate">{{ authStore.user?.name }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ authStore.user?.nim }}</p>
           </div>
         </div>
         
@@ -92,15 +119,29 @@
       </div>
     </aside>
 
+    <!-- Mobile Header -->
+    <header class="lg:hidden fixed top-0 left-0 right-0 h-16 glass border-b border-gray-200 dark:border-gray-700 z-30 flex items-center justify-between px-4">
+      <button 
+        @click="mobileMenuOpen = true"
+        class="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+      <h1 class="font-bold text-lg gradient-text">Mahasiswa</h1>
+      <div class="w-6"></div>
+    </header>
+
     <!-- Main Content -->
-    <main class="ml-64 p-8">
+    <main class="lg:ml-64 pt-16 lg:pt-0 p-4 sm:p-6 lg:p-8">
       <router-view />
     </main>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { useThemeStore } from '../../stores/theme'
@@ -109,6 +150,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const themeStore = useThemeStore()
 
+const mobileMenuOpen = ref(false)
 const isDark = computed(() => themeStore.isDark)
 
 const toggleTheme = () => {
