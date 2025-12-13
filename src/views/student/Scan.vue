@@ -194,7 +194,29 @@ const startScanning = async () => {
     
     // Check if browser supports camera
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      throw new Error('Browser Anda tidak mendukung akses kamera')
+      throw new Error('Browser Anda tidak mendukung akses kamera. Pastikan Anda menggunakan HTTPS atau localhost.')
+    }
+    
+    // Request camera permission first
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment' // Prefer back camera on mobile
+        } 
+      })
+      // Stop the stream immediately, we just needed to check permission
+      stream.getTracks().forEach(track => track.stop())
+    } catch (permErr) {
+      console.error('Permission error:', permErr)
+      if (permErr.name === 'NotAllowedError' || permErr.name === 'PermissionDeniedError') {
+        throw new Error('Akses kamera ditolak. Silakan izinkan akses kamera di pengaturan browser Anda.')
+      } else if (permErr.name === 'NotFoundError' || permErr.name === 'DevicesNotFoundError') {
+        throw new Error('Tidak ada kamera yang ditemukan pada perangkat Anda.')
+      } else if (permErr.name === 'NotReadableError' || permErr.name === 'TrackStartError') {
+        throw new Error('Kamera sedang digunakan oleh aplikasi lain.')
+      } else {
+        throw new Error('Gagal mengakses kamera: ' + permErr.message)
+      }
     }
     
     // Initialize Html5Qrcode
@@ -212,7 +234,7 @@ const startScanning = async () => {
     // Try to find back camera, otherwise use first available
     let cameraId = devices[0].id
     
-    // Look for back camera (environment facing)
+    // Look for back camera (environment facing) - important for mobile
     const backCamera = devices.find(device => 
       device.label.toLowerCase().includes('back') || 
       device.label.toLowerCase().includes('rear') ||
@@ -231,7 +253,15 @@ const startScanning = async () => {
       cameraId,
       {
         fps: 10,
-        qrbox: { width: 250, height: 250 },
+        qrbox: function(viewfinderWidth, viewfinderHeight) {
+          // Make QR box responsive
+          const minEdge = Math.min(viewfinderWidth, viewfinderHeight)
+          const qrboxSize = Math.floor(minEdge * 0.7)
+          return {
+            width: qrboxSize,
+            height: qrboxSize
+          }
+        },
         aspectRatio: 1.0
       },
       onScanSuccess,
