@@ -22,15 +22,21 @@ export const useAttendanceStore = defineStore('attendance', () => {
   loadFromStorage()
 
   function createQRCode(qrData) {
+    // Generate 6-digit manual code
+    const manualCode = Math.floor(100000 + Math.random() * 900000).toString()
+    
     const newQR = {
       id: Date.now(),
       ...qrData,
+      manualCode, // Add manual code
       createdAt: new Date().toISOString(),
       isActive: true
     }
 
     qrCodes.value.push(newQR)
     localStorage.setItem('qrCodes', JSON.stringify(qrCodes.value))
+    
+    console.log('QR Code created with manual code:', manualCode)
     
     return newQR
   }
@@ -146,6 +152,25 @@ export const useAttendanceStore = defineStore('attendance', () => {
   function getActiveQRCodes() {
     return qrCodes.value.filter(q => q.isActive)
   }
+  
+  function recordAttendanceByCode(studentId, manualCode) {
+    console.log('=== ATTENDANCE BY MANUAL CODE ===')
+    console.log('Manual Code:', manualCode)
+    console.log('Student ID:', studentId)
+    
+    // Find QR by manual code
+    const qr = qrCodes.value.find(q => q.manualCode === manualCode && q.isActive)
+    
+    if (!qr) {
+      console.error('QR Code not found with manual code:', manualCode)
+      throw new Error('Kode tidak valid atau QR Code sudah tidak aktif')
+    }
+    
+    console.log('QR Code found:', qr)
+    
+    // Use the same validation as recordAttendance
+    return recordAttendance(studentId, qr.id)
+  }
 
   return {
     attendances,
@@ -153,6 +178,7 @@ export const useAttendanceStore = defineStore('attendance', () => {
     createQRCode,
     deactivateQRCode,
     recordAttendance,
+    recordAttendanceByCode,
     getAttendancesByStudent,
     getAttendancesByQR,
     getAllAttendances,
