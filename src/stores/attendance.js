@@ -65,6 +65,7 @@ export const useAttendanceStore = defineStore('attendance', () => {
     const now = new Date()
     console.log('Current time:', now.toISOString())
     console.log('Current local time:', now.toLocaleString('id-ID'))
+    console.log('Current date string:', now.toDateString())
     
     // Parse QR date (format: YYYY-MM-DD)
     const [qrYear, qrMonth, qrDay] = qr.date.split('-').map(Number)
@@ -75,14 +76,33 @@ export const useAttendanceStore = defineStore('attendance', () => {
     
     console.log('QR Date (input):', qr.date)
     console.log('QR Date (parsed):', qrDateOnly.toLocaleDateString('id-ID'))
+    console.log('QR Date (ISO):', qrDateOnly.toISOString())
     console.log('Today Date:', nowDateOnly.toLocaleDateString('id-ID'))
+    console.log('Today Date (ISO):', nowDateOnly.toISOString())
+    console.log('QR timestamp:', qrDateOnly.getTime())
+    console.log('Today timestamp:', nowDateOnly.getTime())
+    console.log('Difference (ms):', Math.abs(qrDateOnly.getTime() - nowDateOnly.getTime()))
     
-    // Check if the date matches
-    if (nowDateOnly.getTime() !== qrDateOnly.getTime()) {
+    // More flexible date comparison (allow same day even with timezone differences)
+    const qrDateStr = `${qrYear}-${String(qrMonth).padStart(2, '0')}-${String(qrDay).padStart(2, '0')}`
+    const nowDateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    
+    console.log('QR Date String:', qrDateStr)
+    console.log('Now Date String:', nowDateStr)
+    
+    // Check if the date matches (using string comparison to avoid timezone issues)
+    if (qrDateStr !== nowDateStr) {
       console.error('Date mismatch!')
-      console.error('Expected:', qrDateOnly.toLocaleDateString('id-ID'))
-      console.error('Got:', nowDateOnly.toLocaleDateString('id-ID'))
-      throw new Error('QR Code hanya berlaku pada tanggal ' + qrDateOnly.toLocaleDateString('id-ID'))
+      console.error('Expected:', qrDateStr)
+      console.error('Got:', nowDateStr)
+      
+      // Calculate difference in days
+      const diffTime = Math.abs(qrDateOnly.getTime() - nowDateOnly.getTime())
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      
+      console.error('Difference:', diffDays, 'days')
+      
+      throw new Error(`QR Code hanya berlaku pada tanggal ${qrDateOnly.toLocaleDateString('id-ID')}`)
     }
     
     console.log('✅ Date validation passed')
