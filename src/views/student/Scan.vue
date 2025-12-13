@@ -106,15 +106,27 @@
 
         <!-- Manual Input -->
         <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <p class="text-sm text-gray-600 dark:text-gray-400 mb-3 text-center">Atau masukkan kode manual</p>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 text-center font-semibold">
+            💡 Atau masukkan kode manual (6 digit)
+          </p>
+          <p class="text-xs text-gray-500 dark:text-gray-500 mb-3 text-center">
+            Jika scan QR tidak berfungsi, tanyakan kode 6 digit kepada dosen/admin
+          </p>
           <div class="flex space-x-2">
             <input
               v-model="manualCode"
               type="text"
-              placeholder="Masukkan kode QR"
-              class="input-field flex-1"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="6"
+              placeholder="Contoh: 123456"
+              class="input-field flex-1 text-center text-2xl font-mono tracking-widest"
+              @keypress="(e) => { if (!/[0-9]/.test(e.key)) e.preventDefault() }"
             />
             <button @click="submitManualCode" class="btn-primary px-6">
+              <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
               Submit
             </button>
           </div>
@@ -347,13 +359,43 @@ const processQRCode = (qrData) => {
 }
 
 const submitManualCode = () => {
+  errorMessage.value = ''
+  successMessage.value = ''
+  
   if (!manualCode.value) {
-    errorMessage.value = 'Masukkan kode QR terlebih dahulu'
+    errorMessage.value = 'Masukkan kode 6 digit terlebih dahulu'
     return
   }
   
-  processQRCode(manualCode.value)
-  manualCode.value = ''
+  // Trim whitespace
+  const code = manualCode.value.trim()
+  
+  if (code.length !== 6) {
+    errorMessage.value = 'Kode harus 6 digit'
+    return
+  }
+  
+  if (!/^\d{6}$/.test(code)) {
+    errorMessage.value = 'Kode harus berupa angka'
+    return
+  }
+  
+  try {
+    console.log('Submitting manual code:', code)
+    attendanceStore.recordAttendanceByCode(authStore.user.id, code)
+    
+    successMessage.value = `Absensi berhasil dengan kode ${code}!`
+    errorMessage.value = ''
+    manualCode.value = ''
+    
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 5000)
+  } catch (err) {
+    console.error('Manual code error:', err)
+    errorMessage.value = err.message
+    successMessage.value = ''
+  }
 }
 
 const formatDate = (dateString) => {
