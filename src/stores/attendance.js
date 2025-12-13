@@ -178,11 +178,25 @@ export const useAttendanceStore = defineStore('attendance', () => {
     console.log('Manual Code:', manualCode)
     console.log('Student ID:', studentId)
     
+    // Log all QR codes for debugging
+    console.log('All QR Codes:', qrCodes.value)
+    console.log('Active QR Codes:', qrCodes.value.filter(q => q.isActive))
+    
+    // List all manual codes
+    const allCodes = qrCodes.value.map(q => ({
+      code: q.manualCode,
+      subject: q.subject,
+      active: q.isActive,
+      date: q.date
+    }))
+    console.log('All Manual Codes:', allCodes)
+    
     // Find QR by manual code
     const qr = qrCodes.value.find(q => q.manualCode === manualCode && q.isActive)
     
     if (!qr) {
       console.error('QR Code not found with manual code:', manualCode)
+      console.error('Available active codes:', qrCodes.value.filter(q => q.isActive).map(q => q.manualCode))
       throw new Error('Kode tidak valid atau QR Code sudah tidak aktif')
     }
     
@@ -191,6 +205,7 @@ export const useAttendanceStore = defineStore('attendance', () => {
     // Use the same validation as recordAttendance
     return recordAttendance(studentId, qr.id)
   }
+
 
   return {
     attendances,
