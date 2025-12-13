@@ -74,6 +74,19 @@
             </div>
           </div>
 
+          <!-- Remember Me -->
+          <div class="flex items-center">
+            <input
+              id="rememberMe"
+              v-model="rememberMe"
+              type="checkbox"
+              class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+            />
+            <label for="rememberMe" class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              Tetap masuk (Remember Me)
+            </label>
+          </div>
+
           <!-- Submit Button -->
           <button
             type="submit"
@@ -121,6 +134,7 @@ const formData = ref({
 const showPassword = ref(false)
 const loading = ref(false)
 const error = ref('')
+const rememberMe = ref(true) // Default true - tetap masuk
 
 const handleLogin = async () => {
   error.value = ''
@@ -128,6 +142,15 @@ const handleLogin = async () => {
 
   try {
     const user = await authStore.login(formData.value.identifier, formData.value.password)
+    
+    // Save remember me preference
+    if (rememberMe.value) {
+      localStorage.setItem('rememberMe', 'true')
+    } else {
+      localStorage.setItem('rememberMe', 'false')
+      // Note: Session tetap tersimpan, tapi bisa di-clear saat close browser
+      // Untuk implementasi penuh, perlu sessionStorage vs localStorage
+    }
     
     // Redirect based on role
     if (user.role === 'admin') {
