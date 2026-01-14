@@ -1,5 +1,5 @@
 <template>
-  <div :class="{ dark: isDark }" class="min-h-screen">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <router-view v-slot="{ Component }">
       <transition name="page" mode="out-in">
         <component :is="Component" />
