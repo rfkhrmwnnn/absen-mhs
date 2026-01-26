@@ -14,7 +14,8 @@
     "pinia": "^2.3.0",
     "qrcode": "^1.5.4",
     "html5-qrcode": "^2.3.8",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "@supabase/supabase-js": "^2.39.3"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",
