@@ -102,7 +102,7 @@ let refreshInterval = null
 
 // OpenWeatherMap API key (free tier)
 // Note: Untuk production, sebaiknya simpan di environment variables
-const API_KEY = 'bd5e378503939ddaee76f12ad7a97608' // Free API key untuk demo
+const API_KEY = '9bffa714094a0a1e08d02ef741d72145' // Free API key untuk demo
 const CITY = 'Cirebon'
 const COUNTRY_CODE = 'ID'
 
